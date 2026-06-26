@@ -1,0 +1,73 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  max-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  margin-left: 3%;
+  margin-right: 3%;
+  margin-top: 1.5rem;
+}
+
+/* Navigation Bar */
+nav {
+  display: flex;
+  gap: 3rem;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+nav a {
+  color: #ffffff80;
+  text-decoration: none;
+  padding-bottom: 0.05rem;
+  border-bottom: 0.2rem solid transparent;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Current page */
+nav a.active {
+  color: #fff;
+  border-bottom-color: #fff;
+}
+
+/* Hover on non-active links */
+nav a:not(.active):hover {
+  border-bottom-color: #ffffff80;
+}
+
+
+
+
+/* Page Cover */
+.main-cover {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.rgst-btn {
+  width: 120px;
+  margin-right: 5px;
+  margin-left: 5px;
+}
+
+/* Page Register */
+.main-rgst {
+  background-color: #eceff2;
+  flex: 1;
+  display: flex;
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+  padding: 7rem 5rem 7rem 5rem;
+}
