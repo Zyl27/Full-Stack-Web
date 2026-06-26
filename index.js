@@ -22,6 +22,6 @@ app.get("/login", (req, res) => {
   res.render("login.ejs", { footerYear: CurrentYear });
 });
 
-app.listen(port, () => {
+app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
