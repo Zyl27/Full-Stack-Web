@@ -1,7 +1,7 @@
 import express from "express";
 
 const app = express();
-const port = 3000;
+const PORT = process.env.PORT || 3000;
 const CurrentYear = new Date().getFullYear();
 
 app.use(express.static("public"));
@@ -23,5 +23,5 @@ app.get("/login", (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+  console.log(`Server running on port ${PORT}`);
 });
