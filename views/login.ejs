@@ -28,13 +28,45 @@
                 <p class="text-secondary">OR</p>
             </div>
 
+            <!-- Google Sign-In Button -->
             <div class="col-sm-3 d-flex align-items-center mb-3">
-                <div class="card" style="width: 25rem;">
-                    <a class="btn btn-outline-primary" href="/auth/google" role="button">
-                        <i class="fab fa-google"></i>
-                        Sign in with Google
-                    </a>
+                <div
+                    id="g_id_onload"
+                    data-client_id="<%= GOOGLE_CLIENT_ID %>"
+                    data-context="signin"
+                    data-callback="handleCredentialResponse"
+                    data-auto_prompt="false">
                 </div>
+
+                <div
+                    class="g_id_signin"
+                    data-type="standard"
+                    data-theme="filled_blue"
+                    data-size="large"
+                    data-shape="rectangular"
+                    data-text="signin_with"
+                    data-logo_alignment="left">
+                </div>
+
+                <script>
+                function handleCredentialResponse(response) {
+                    // response.credential contains the Google ID token (JWT)
+                    console.log(response.credential);
+
+                    // Send the credential to your backend
+                    /*
+                    fetch("/auth/google", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            credential: response.credential
+                        })
+                    });
+                    */
+                }
+                </script>
             </div>
         </div>
 

@@ -7,7 +7,7 @@
         
         <div class="row">
             <div class="col-sm-8 mr-5">
-                <p class="text-secondary text-start">Simply create an account with your email.<br>
+                <p class="text-secondary text-start mb-4">Simply create an account with your email.<br>
                     Password must be at least 6 characters, inluding lowercase, uppercase letters, digits and symbols.
                 </p>
                 <form action="/register" method="POST">
@@ -31,13 +31,47 @@
                 <p class="text-secondary">OR</p>
             </div>
 
+            <!-- Google Sign-Up Button -->
             <div class="col-sm-3 d-flex align-items-center mb-3">
-                <div class="card" style="width: 20rem;">
-                    <a class="btn btn-outline-dark" href="/auth/google" role="button">
-                        <i class="fab fa-google"></i>
-                        Sign up with Google
-                    </a>
+                <div
+                    id="g_id_onload"
+                    data-client_id="<%= GOOGLE_CLIENT_ID %>"
+                    data-context="signup"
+                    data-callback="handleCredentialResponse"
+                    data-auto_prompt="false">
                 </div>
+
+                <div
+                    class="g_id_signin"
+                    data-type="standard"
+                    data-shape="rectangular"
+                    data-theme="outline"
+                    data-text="signup_with"
+                    data-size="large"
+                    data-logo_alignment="left">
+                </div>
+
+                <script>
+                    function handleCredentialResponse(response) {
+                        console.log(response);
+
+                        // response.credential is the Google ID token (JWT)
+                        console.log(response.credential);
+
+                        // Send the token to your backend
+                        /*
+                        fetch("/auth/google", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({
+                                credential: response.credential
+                            })
+                        });
+                        */
+                    }
+                </script>
             </div>
         </div>
 

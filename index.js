@@ -36,7 +36,38 @@ app.get("/cover", (req, res) => {
 app.get("/register", (req, res) => {
   const message = req.session.message;
   delete req.session.message;
-  res.render("register.ejs", { accountCheck: message });
+  res.render("register.ejs", {
+    accountCheck: message,
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+  });
+});
+
+app.get("/login", (req, res) => {
+  const message = req.session.message;
+  delete req.session.message;
+  res.render("login.ejs", {
+    loginCheck: message,
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+  });
+});
+
+app.get("/home", requireLogin, async (req, res) => {
+  const userId = req.session.user.id;
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("user_name")
+    .eq("id", userId);
+
+  if (error) {
+    console.log(error.message);
+  }
+
+  const capName =
+    data[0].user_name[0].toUpperCase() +
+    data[0].user_name.slice(1).toLowerCase();
+
+  res.render("home.ejs", { profileName: capName });
 });
 
 app.post("/register", async (req, res) => {
@@ -70,12 +101,6 @@ app.post("/register", async (req, res) => {
   res.redirect("/login");
 });
 
-app.get("/login", (req, res) => {
-  const message = req.session.message;
-  delete req.session.message;
-  res.render("login.ejs", { loginCheck: message });
-});
-
 app.post("/login", async (req, res) => {
   const email = req.body.useremail;
   const password = req.body.password;
@@ -97,25 +122,6 @@ app.post("/login", async (req, res) => {
   };
 
   res.redirect("/home");
-});
-
-app.get("/home", requireLogin, async (req, res) => {
-  const userId = req.session.user.id;
-
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("user_name")
-    .eq("id", userId);
-
-  if (error) {
-    console.log(error.message);
-  }
-
-  const capName =
-    data[0].user_name[0].toUpperCase() +
-    data[0].user_name.slice(1).toLowerCase();
-
-  res.render("home.ejs", { profileName: capName });
 });
 
 // authentication middleware
