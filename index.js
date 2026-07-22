@@ -1,29 +1,32 @@
 import express from "express";
-import env from "dotenv";
-import { createClient } from "@supabase/supabase-js";
+import dotenv from "dotenv";
 import session from "express-session";
+import { requireLogin } from "./middleware/auth.js";
+import { supabaseMiddleware } from "./middleware/supabse.js";
+import { requireAuth } from "./middleware/authSupabase.js";
+import cookieParser from "cookie-parser";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-env.config();
-
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY,
-);
+dotenv.config();
 
 app.use(
   session({
     secret: process.env.SESSION_SECRET,
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
     cookie: {
-      maxAge: 1000 * 60 * 5, // 5 min
+      maxAge: 5 * 60 * 1000,
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
     },
   }),
 );
+app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
+app.use(supabaseMiddleware);
 
 app.get("/", async (req, res) => {
   res.render("cover.ejs");
@@ -36,25 +39,19 @@ app.get("/cover", (req, res) => {
 app.get("/register", (req, res) => {
   const message = req.session.message;
   delete req.session.message;
-  res.render("register.ejs", {
-    accountCheck: message,
-    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
-  });
+  res.render("register.ejs", { accountCheck: message });
 });
 
 app.get("/login", (req, res) => {
   const message = req.session.message;
   delete req.session.message;
-  res.render("login.ejs", {
-    loginCheck: message,
-    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
-  });
+  res.render("login.ejs", { loginCheck: message });
 });
 
 app.get("/home", requireLogin, async (req, res) => {
   const userId = req.session.user.id;
 
-  const { data, error } = await supabase
+  const { data, error } = await req.supabase
     .from("profiles")
     .select("user_name")
     .eq("id", userId);
@@ -70,12 +67,60 @@ app.get("/home", requireLogin, async (req, res) => {
   res.render("home.ejs", { profileName: capName });
 });
 
+app.get("/auth/google", async (req, res) => {
+  const { data, error } = await req.supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: "http://localhost:3000/auth/callback",
+    },
+  });
+
+  if (error) {
+    console.log(error);
+  }
+
+  res.redirect(data.url);
+});
+
+app.get("/auth/callback", async (req, res) => {
+  const code = req.query.code;
+  if (!code) {
+    return res.redirect("/login");
+  }
+
+  try {
+    const { data, error } =
+      await req.supabase.auth.exchangeCodeForSession(code);
+
+    const userId = data.user.identities[0].user_id;
+    const name = data.user.email;
+    const { error: profileError } = await req.supabase.from("profiles").insert({
+      id: userId,
+      user_name: name,
+    });
+
+    if (profileError) {
+      console.log(profileError.message);
+    }
+
+    req.session.user = {
+      id: userId,
+      email: name,
+    };
+
+    res.redirect("/home");
+  } catch (err) {
+    console.log(err);
+    return res.redirect("/register");
+  }
+});
+
 app.post("/register", async (req, res) => {
   const name = req.body.username?.trim() || req.body.useremail.split("@")[0];
   const email = req.body.useremail;
   const password = req.body.password;
 
-  const { data, error: acError } = await supabase.auth.signUp({
+  const { data, error: acError } = await req.supabase.auth.signUp({
     email: email,
     password: password,
   });
@@ -89,7 +134,7 @@ app.post("/register", async (req, res) => {
 
   const userId = data.user.id;
 
-  const { error: profileError } = await supabase.from("profiles").insert({
+  const { error: profileError } = await req.supabase.from("profiles").insert({
     id: userId,
     user_name: name,
   });
@@ -105,7 +150,7 @@ app.post("/login", async (req, res) => {
   const email = req.body.useremail;
   const password = req.body.password;
 
-  const { data, error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await req.supabase.auth.signInWithPassword({
     email: email,
     password: password,
   });
@@ -123,15 +168,6 @@ app.post("/login", async (req, res) => {
 
   res.redirect("/home");
 });
-
-// authentication middleware
-function requireLogin(req, res, next) {
-  if (!req.session.user) {
-    return res.redirect("/login");
-  }
-
-  next();
-}
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

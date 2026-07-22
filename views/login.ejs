@@ -6,7 +6,7 @@
         <h1 class="fw-bold text-dark mb-5 text-start">Please sign in</h1>
         
         <div class="row">
-            <div class="col-sm-8 mr-5">
+            <div class="col mr-5">
                 <form action="/login" method="POST">
                     <div class="form-floating">
                         <input type="email" class="form-control" id="floatingInput" placeholder="name@example.com" name="useremail">
@@ -29,44 +29,14 @@
             </div>
 
             <!-- Google Sign-In Button -->
-            <div class="col-sm-3 d-flex align-items-center mb-3">
-                <div
-                    id="g_id_onload"
-                    data-client_id="<%= GOOGLE_CLIENT_ID %>"
-                    data-context="signin"
-                    data-callback="handleCredentialResponse"
-                    data-auto_prompt="false">
-                </div>
-
-                <div
-                    class="g_id_signin"
-                    data-type="standard"
-                    data-theme="filled_blue"
-                    data-size="large"
-                    data-shape="rectangular"
-                    data-text="signin_with"
-                    data-logo_alignment="left">
-                </div>
-
-                <script>
-                function handleCredentialResponse(response) {
-                    // response.credential contains the Google ID token (JWT)
-                    console.log(response.credential);
-
-                    // Send the credential to your backend
-                    /*
-                    fetch("/auth/google", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({
-                            credential: response.credential
-                        })
-                    });
-                    */
-                }
-                </script>
+            <div class="col-sm-2 d-flex align-items-center mb-3">
+                <a href="/auth/google" role="button" class="btn btn-outline-primary col-md-auto py-2">
+                    <img
+                    src="https://www.svgrepo.com/show/475656/google-color.svg"
+                    width="20rem"
+                    style="vertical-align: middle; margin-right:8px;">
+                    Sign In with Google
+                </a>
             </div>
         </div>
 
