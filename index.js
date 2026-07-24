@@ -1,7 +1,5 @@
 import express from "express";
 import dotenv from "dotenv";
-import session from "express-session";
-import { requireLogin } from "./middleware/auth.js";
 import { supabaseMiddleware } from "./middleware/supabse.js";
 import { requireAuth } from "./middleware/authSupabase.js";
 import cookieParser from "cookie-parser";
@@ -10,19 +8,6 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 dotenv.config();
 
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      maxAge: 5 * 60 * 1000,
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-    },
-  }),
-);
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
@@ -37,32 +22,61 @@ app.get("/cover", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-  const message = req.session.message;
-  delete req.session.message;
+  let message = "";
+
+  switch (req.query.error) {
+    case "invalid_registration":
+      message =
+        "Unable to create your account. This email is already registered, or the information you entered is invalid. Please try again or log in.";
+      break;
+
+    case "oauth_failed":
+      message =
+        "Google authentication failed. Please try again. If the issue persists, create an account with your email address, then log in.";
+      break;
+  }
+
   res.render("register.ejs", { accountCheck: message });
 });
 
 app.get("/login", (req, res) => {
-  const message = req.session.message;
-  delete req.session.message;
-  res.render("login.ejs", { loginCheck: message });
+  let message = "";
+  let messageR = "";
+
+  switch (req.query.error) {
+    case "invalid_credentials":
+      message = "Login failed. Invalid email or password.";
+      break;
+
+    case "oauth_failed":
+      message = "Google login failed. Please try again.";
+      break;
+  }
+
+  switch (req.query.success) {
+    case "registered":
+      messageR = "Account created successfully <br>Please sign in";
+      break;
+  }
+
+  res.render("login.ejs", { loginCheck: message, registered: messageR });
 });
 
-app.get("/home", requireLogin, async (req, res) => {
-  const userId = req.session.user.id;
+app.get("/home", requireAuth, async (req, res) => {
+  const userId = req.user.id;
 
   const { data, error } = await req.supabase
     .from("profiles")
     .select("user_name")
-    .eq("id", userId);
+    .eq("id", userId)
+    .single();
 
   if (error) {
     console.log(error.message);
   }
 
   const capName =
-    data[0].user_name[0].toUpperCase() +
-    data[0].user_name.slice(1).toLowerCase();
+    data.user_name[0].toUpperCase() + data.user_name.slice(1).toLowerCase();
 
   res.render("home.ejs", { profileName: capName });
 });
@@ -85,7 +99,7 @@ app.get("/auth/google", async (req, res) => {
 app.get("/auth/callback", async (req, res) => {
   const code = req.query.code;
   if (!code) {
-    return res.redirect("/login");
+    return res.redirect("/register?error=oauth_failed");
   }
 
   try {
@@ -94,24 +108,29 @@ app.get("/auth/callback", async (req, res) => {
 
     const userId = data.user.identities[0].user_id;
     const name = data.user.email;
-    const { error: profileError } = await req.supabase.from("profiles").insert({
-      id: userId,
-      user_name: name,
-    });
+    const { data: userData } = await req.supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", userId)
+      .single();
 
-    if (profileError) {
-      console.log(profileError.message);
+    if (!userData) {
+      const { error: profileError } = await req.supabase
+        .from("profiles")
+        .insert({
+          id: userId,
+          user_name: name,
+        });
+
+      if (profileError) {
+        console.log(profileError.message);
+      }
     }
-
-    req.session.user = {
-      id: userId,
-      email: name,
-    };
 
     res.redirect("/home");
   } catch (err) {
     console.log(err);
-    return res.redirect("/register");
+    return res.redirect("/register?error=oauth_failed");
   }
 });
 
@@ -127,9 +146,7 @@ app.post("/register", async (req, res) => {
 
   if (acError) {
     console.log(acError.message);
-    req.session.message =
-      "Unable to create your account. This email is already registered, or the information you entered is invalid. Please try again or log in.";
-    return res.redirect("/register");
+    return res.redirect("/register?error=invalid_registration");
   }
 
   const userId = data.user.id;
@@ -143,7 +160,7 @@ app.post("/register", async (req, res) => {
     console.log(profileError.message);
   }
 
-  res.redirect("/login");
+  res.redirect("/login?success=registered");
 });
 
 app.post("/login", async (req, res) => {
@@ -157,14 +174,8 @@ app.post("/login", async (req, res) => {
 
   if (error) {
     console.log(error.message);
-    req.session.message = "Login failed. Invalid email or password.";
-    return res.redirect("/login");
+    return res.redirect("/login?error=invalid_credentials");
   }
-
-  req.session.user = {
-    id: data.user.id,
-    email: data.user.email,
-  };
 
   res.redirect("/home");
 });
