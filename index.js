@@ -21,6 +21,10 @@ app.get("/cover", (req, res) => {
   res.render("cover.ejs");
 });
 
+app.get("/contact", (req, res) => {
+  res.render("contact.ejs");
+});
+
 app.get("/register", (req, res) => {
   let message = "";
 

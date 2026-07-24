@@ -20,6 +20,8 @@ export function createSupabaseServerClient(req, res) {
               httpOnly: true,
               sameSite: "lax",
               secure: process.env.NODE_ENV === "production",
+              sameSite: "lax",
+              path: "/",
             });
           });
         },
