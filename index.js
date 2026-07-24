@@ -85,7 +85,7 @@ app.get("/auth/google", async (req, res) => {
   const { data, error } = await req.supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: "http://localhost:3000/auth/callback",
+      redirectTo: `${process.env.APP_URL}/auth/callback`,
     },
   });
 
