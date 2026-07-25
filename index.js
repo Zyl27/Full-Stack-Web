@@ -1,17 +1,24 @@
 import express from "express";
 import dotenv from "dotenv";
-import { supabaseMiddleware } from "./middleware/supabse.js";
-import { requireAuth } from "./middleware/authSupabase.js";
 import cookieParser from "cookie-parser";
+import rateLimit from "express-rate-limit";
+import { createSupabaseServerClient } from "./create-supabase-server.js";
+import { regSupabase } from "./regular-supabase.js";
+import { requireAuth } from "./middleware/authSupabase.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const feedbackLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 dotenv.config();
 
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
-app.use(supabaseMiddleware);
 
 app.get("/", async (req, res) => {
   res.render("cover.ejs");
@@ -22,7 +29,33 @@ app.get("/cover", (req, res) => {
 });
 
 app.get("/contact", (req, res) => {
-  res.render("contact.ejs");
+  let message = "";
+
+  switch (req.query.error) {
+    case "empty":
+      message = "Topic and content are required.";
+      break;
+
+    case "invalid_topic":
+      message = "Topic is too long.";
+      break;
+
+    case "invalid_content":
+      message = "Content is too long.";
+      break;
+
+    case "submission_failed":
+      message = "Sorry, unable to submit feedback. Maybe try again later.";
+      break;
+  }
+
+  switch (req.query.success) {
+    case "submitted":
+      message = "Message received. Thank you!";
+      break;
+  }
+
+  res.render("contact.ejs", { feedbackCheck: message });
 });
 
 app.get("/register", (req, res) => {
@@ -67,9 +100,10 @@ app.get("/login", (req, res) => {
 });
 
 app.get("/home", requireAuth, async (req, res) => {
+  const serverSupabase = createSupabaseServerClient(req, res);
   const userId = req.user.id;
 
-  const { data, error } = await req.supabase
+  const { data, error } = await serverSupabase
     .from("profiles")
     .select("user_name")
     .eq("id", userId)
@@ -86,7 +120,8 @@ app.get("/home", requireAuth, async (req, res) => {
 });
 
 app.get("/auth/google", async (req, res) => {
-  const { data, error } = await req.supabase.auth.signInWithOAuth({
+  const serverSupabase = createSupabaseServerClient(req, res);
+  const { data, error } = await serverSupabase.auth.signInWithOAuth({
     provider: "google",
     options: {
       redirectTo: `${process.env.APP_URL}/auth/callback`,
@@ -101,6 +136,7 @@ app.get("/auth/google", async (req, res) => {
 });
 
 app.get("/auth/callback", async (req, res) => {
+  const serverSupabase = createSupabaseServerClient(req, res);
   const code = req.query.code;
   if (!code) {
     return res.redirect("/register?error=oauth_failed");
@@ -108,23 +144,21 @@ app.get("/auth/callback", async (req, res) => {
 
   try {
     const { data, error } =
-      await req.supabase.auth.exchangeCodeForSession(code);
+      await serverSupabase.auth.exchangeCodeForSession(code);
 
     const userId = data.user.identities[0].user_id;
     const name = data.user.email;
-    const { data: userData } = await req.supabase
+    const { data: userData } = await serverSupabase
       .from("profiles")
       .select("id")
       .eq("id", userId)
       .single();
 
     if (!userData) {
-      const { error: profileError } = await req.supabase
-        .from("profiles")
-        .insert({
-          id: userId,
-          user_name: name,
-        });
+      const { error: profileError } = serverSupabase.from("profiles").insert({
+        id: userId,
+        user_name: name,
+      });
 
       if (profileError) {
         console.log(profileError.message);
@@ -138,12 +172,14 @@ app.get("/auth/callback", async (req, res) => {
   }
 });
 
+// ------------------------------------ POST ------------------------------------
 app.post("/register", async (req, res) => {
+  const serverSupabase = createSupabaseServerClient(req, res);
   const name = req.body.username?.trim() || req.body.useremail.split("@")[0];
   const email = req.body.useremail;
   const password = req.body.password;
 
-  const { data, error: acError } = await req.supabase.auth.signUp({
+  const { data, error: acError } = await serverSupabase.auth.signUp({
     email: email,
     password: password,
   });
@@ -155,7 +191,7 @@ app.post("/register", async (req, res) => {
 
   const userId = data.user.id;
 
-  const { error: profileError } = await req.supabase.from("profiles").insert({
+  const { error: profileError } = await serverSupabase.from("profiles").insert({
     id: userId,
     user_name: name,
   });
@@ -168,10 +204,11 @@ app.post("/register", async (req, res) => {
 });
 
 app.post("/login", async (req, res) => {
+  const serverSupabase = createSupabaseServerClient(req, res);
   const email = req.body.useremail;
   const password = req.body.password;
 
-  const { data, error } = await req.supabase.auth.signInWithPassword({
+  const { data, error } = await serverSupabase.auth.signInWithPassword({
     email: email,
     password: password,
   });
@@ -182,6 +219,35 @@ app.post("/login", async (req, res) => {
   }
 
   res.redirect("/home");
+});
+
+app.post("/contact", feedbackLimiter, async (req, res) => {
+  const topic = req.body.topic?.trim();
+  const content = req.body.content?.trim();
+
+  if (!topic || !content) {
+    return res.redirect("/contact?error=empty");
+  }
+
+  if (topic.length > 100) {
+    return res.redirect("/contact?error=invalid_topic");
+  }
+
+  if (content.length > 5000) {
+    return res.redirect("/contact?error=invalid_content");
+  }
+
+  const { error } = await regSupabase.from("feedback").insert({
+    topic,
+    content,
+  });
+
+  if (error) {
+    console.error(error);
+    return res.redirect("/contact?error=submission_failed");
+  }
+
+  res.redirect("/contact?success=submitted");
 });
 
 app.listen(PORT, () => {
