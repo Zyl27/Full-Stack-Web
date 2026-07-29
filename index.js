@@ -36,14 +36,6 @@ app.get("/contact", (req, res) => {
       message = "Topic and content are required.";
       break;
 
-    case "invalid_topic":
-      message = "Topic is too long.";
-      break;
-
-    case "invalid_content":
-      message = "Content is too long.";
-      break;
-
     case "submission_failed":
       message = "Sorry, unable to submit feedback. Maybe try again later.";
       break;
@@ -147,7 +139,7 @@ app.get("/auth/callback", async (req, res) => {
       await serverSupabase.auth.exchangeCodeForSession(code);
 
     const userId = data.user.identities[0].user_id;
-    const name = data.user.email;
+    const name = data.user.user_metadata.name;
     const { data: userData } = await serverSupabase
       .from("profiles")
       .select("id")
@@ -155,13 +147,16 @@ app.get("/auth/callback", async (req, res) => {
       .single();
 
     if (!userData) {
-      const { error: profileError } = serverSupabase.from("profiles").insert({
-        id: userId,
-        user_name: name,
-      });
+      const { error: profileError } = await serverSupabase
+        .from("profiles")
+        .insert({
+          id: userId,
+          user_name: name,
+        });
 
       if (profileError) {
-        console.log(profileError.message);
+        console.error(profileError);
+        return res.redirect("/register?error=oauth_failed");
       }
     }
 
@@ -198,6 +193,7 @@ app.post("/register", async (req, res) => {
 
   if (profileError) {
     console.log(profileError.message);
+    return res.redirect("/register?error=invalid_registration");
   }
 
   res.redirect("/login?success=registered");
@@ -227,14 +223,6 @@ app.post("/contact", feedbackLimiter, async (req, res) => {
 
   if (!topic || !content) {
     return res.redirect("/contact?error=empty");
-  }
-
-  if (topic.length > 100) {
-    return res.redirect("/contact?error=invalid_topic");
-  }
-
-  if (content.length > 5000) {
-    return res.redirect("/contact?error=invalid_content");
   }
 
   const { error } = await regSupabase.from("feedback").insert({
