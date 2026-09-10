@@ -95,20 +95,28 @@ app.get("/home", requireAuth, async (req, res) => {
   const serverSupabase = createSupabaseServerClient(req, res);
   const userId = req.user.id;
 
-  const { data, error } = await serverSupabase
+  const { data: pfData, error: pfErr } = await serverSupabase
     .from("profiles")
     .select("user_name")
     .eq("id", userId)
     .single();
 
-  if (error) {
+  if (pfErr) {
     console.log(error.message);
   }
 
   const capName =
-    data.user_name[0].toUpperCase() + data.user_name.slice(1).toLowerCase();
+    pfData.user_name[0].toUpperCase() + pfData.user_name.slice(1).toLowerCase();
 
-  res.render("home.ejs", { profileName: capName });
+  const { data: showLst, error: showErr } = await serverSupabase
+    .from("shows")
+    .select("*");
+
+  if (showErr) {
+    console.log(showErr.message);
+  }
+
+  res.render("home.ejs", { profileName: capName, showLists: showLst });
 });
 
 app.get("/auth/google", async (req, res) => {

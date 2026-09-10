@@ -18,7 +18,6 @@ export function createSupabaseServerClient(req, res) {
             res.cookie(name, value, {
               ...options,
               httpOnly: true,
-              sameSite: "lax",
               secure: process.env.NODE_ENV === "production",
               sameSite: "lax",
               path: "/",
