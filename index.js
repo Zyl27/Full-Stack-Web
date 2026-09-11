@@ -84,7 +84,7 @@ app.get("/login", (req, res) => {
 
   switch (req.query.success) {
     case "registered":
-      messageR = "Account created successfully <br>Please sign in";
+      messageR = "Account created! <br>Please sign in.";
       break;
   }
 

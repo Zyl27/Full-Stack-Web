@@ -68,3 +68,10 @@ nav a:not(.active):hover {
   flex: 1;
   display: flex;
 }
+
+
+/* Placeholder */
+.form-control::placeholder {
+    color: #cccfd3;
+    opacity: 1;
+}
