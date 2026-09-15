@@ -36,6 +36,11 @@ app.get("/contact", (req, res) => {
       message = "Topic and content are required.";
       break;
 
+    case "wordlimitexceeded":
+      message =
+        "Invalid feedback. Topic: max 70 characters. Content: max 500 characters.";
+      break;
+
     case "submission_failed":
       message = "Sorry, unable to submit feedback. Maybe try again later.";
       break;
@@ -54,9 +59,18 @@ app.get("/register", (req, res) => {
   let message = "";
 
   switch (req.query.error) {
-    case "invalid_registration":
+    case "user_exists":
       message =
-        "Unable to create your account. This email is already registered, or the information you entered is invalid. Please try again or log in.";
+        "Unable to create your account. This email is already registered. Please log in.";
+      break;
+
+    case "invalid_password":
+      message =
+        "Unable to create your account. Password must be at least 6 characters.";
+      break;
+
+    case "invalid_registration":
+      message = "Unable to create your account.";
       break;
 
     case "oauth_failed":
@@ -80,6 +94,11 @@ app.get("/login", (req, res) => {
     case "oauth_failed":
       message = "Google login failed. Please try again.";
       break;
+
+    case "DBconnection_failed":
+      message =
+        "Something went wrong. Please try again later. If the problem persists, please contact us.";
+      break;
   }
 
   switch (req.query.success) {
@@ -102,7 +121,8 @@ app.get("/home", requireAuth, async (req, res) => {
     .single();
 
   if (pfErr) {
-    console.log(error.message);
+    console.log(pfErr.message);
+    return res.redirect("/login?error=DBconnection_failed");
   }
 
   const capName =
@@ -114,6 +134,7 @@ app.get("/home", requireAuth, async (req, res) => {
 
   if (showErr) {
     console.log(showErr.message);
+    return res.redirect("/login?error=DBconnection_failed");
   }
 
   res.render("home.ejs", { profileName: capName, showLists: showLst });
@@ -130,6 +151,7 @@ app.get("/auth/google", async (req, res) => {
 
   if (error) {
     console.log(error);
+    return res.redirect("/register?error=oauth_failed");
   }
 
   res.redirect(data.url);
@@ -146,8 +168,8 @@ app.get("/auth/callback", async (req, res) => {
     const { data, error } =
       await serverSupabase.auth.exchangeCodeForSession(code);
 
-    const userId = data.user.identities[0].user_id;
-    const name = data.user.user_metadata.name;
+    const userId = data.user.id;
+    const name = data.user.user_metadata.name || data.user.email.split("@")[0];
     const { data: userData } = await serverSupabase
       .from("profiles")
       .select("id")
@@ -189,7 +211,21 @@ app.post("/register", async (req, res) => {
 
   if (acError) {
     console.log(acError.message);
-    return res.redirect("/register?error=invalid_registration");
+    const acError_mm = acError.message;
+    let acError_route = "invalid_registration";
+
+    switch (true) {
+      case acError_mm.startsWith("Password should") ||
+        acError_mm.startsWith("Signup requires a valid password"):
+        acError_route = "invalid_password";
+        break;
+
+      case acError_mm.startsWith("User already registered"):
+        acError_route = "user_exists";
+        break;
+    }
+
+    return res.redirect("/register?error=" + acError_route);
   }
 
   const userId = data.user.id;
@@ -200,7 +236,7 @@ app.post("/register", async (req, res) => {
   });
 
   if (profileError) {
-    console.log(profileError.message);
+    console.log("here", profileError.message);
     return res.redirect("/register?error=invalid_registration");
   }
 
@@ -231,6 +267,10 @@ app.post("/contact", feedbackLimiter, async (req, res) => {
 
   if (!topic || !content) {
     return res.redirect("/contact?error=empty");
+  }
+
+  if (content.length > 500 || topic.length > 70) {
+    return res.redirect("/contact?error=wordlimitexceeded");
   }
 
   const { error } = await regSupabase.from("feedback").insert({

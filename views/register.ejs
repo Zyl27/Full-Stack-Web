@@ -11,7 +11,7 @@
                 </div>
 
                 <p class="text-secondary text-start mb-4">Simply create an account with your email.<br>
-                    Password must be at least 6 characters, inluding lowercase, uppercase letters, digits and symbols.
+                    Password must be at least 6 characters. It is recommended to include lowercase, uppercase letters, digits and symbols.
                 </p>
 
                 <form action="/register" method="POST">
@@ -21,11 +21,11 @@
                     </div>
                     <div class="form-group text-start text-muted">
                         <label for="useremail">Email</label>
-                        <input type="email" id="useremail" class="form-control text-start" name="useremail">
+                        <input type="email" id="useremail" class="form-control text-start" name="useremail" required>
                     </div>
                     <div class="form-group text-start text-muted">
                         <label for="password">Password</label>
-                        <input type="password" id="password" class="form-control text-start" name="password">
+                        <input type="password" id="password" class="form-control text-start" name="password" required minlength="6">
                     </div>
                     <div class="d-grid d-md-block mt-4 mb-3">
                         <button type="submit" class="btn btn-dark d-flex justify-content-center py-2">Register</button>

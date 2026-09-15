@@ -13,7 +13,7 @@
                 <ul class="list-unstyled"> 
                     <% showLists.forEach((item) =>{ %>
                         <li> 
-                            <a class="d-flex flex-column flex-lg-row gap-3 align-items-start align-items-lg-center py-3 link-body-emphasis text-decoration-none border-top" href=<%= item.show_link %> target="_blank" title="This is a sample link for learning purposes. Click to open Lorem Ipsum in a new tab."> 
+                            <a class="d-flex flex-column flex-lg-row gap-3 align-items-start align-items-lg-center py-3 link-body-emphasis text-decoration-none border-top" href="<%= item.show_link %>" target="_blank" rel="noopener noreferrer" title="This is a sample link for learning purposes. Click to open Lorem Ipsum in a new tab."> 
                                 <svg aria-hidden="true" class="bd-placeholder-img " height="300" preserveAspectRatio="xMidYMid slice" width="100%" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#777"></rect></svg> 
                                 <div class="col-lg-8 text-start"> 
                                     <h3 class="fw-bold fs-3"><%= item.show_name %></h3>
