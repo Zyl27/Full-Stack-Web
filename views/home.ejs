@@ -4,28 +4,61 @@
 
     <div class="container">
         <div class="my-5">
-            <div class="mb-5">
-                <h1 class="text-dark text-start">Hi <%= profileName %></h1>
+            <div class="mb-4">
+                <h1 class="text-dark text-start text-capitalize">Hi <%= profileName %></h1>
             </div>
 
-            <div> 
-                <h2 class="my-3 fs-4 fw-normal fst-italic text-body-secondary text-start">See what limited-run shows are still on over the next four weeks, and click to get full details.</h2> 
-                <ul class="list-unstyled"> 
-                    <% showLists.forEach((item) =>{ %>
-                        <li> 
-                            <a class="d-flex flex-column flex-lg-row gap-3 align-items-start align-items-lg-center py-3 link-body-emphasis text-decoration-none border-top" href="<%= item.show_link %>" target="_blank" rel="noopener noreferrer" title="This is a sample link for learning purposes. Click to open Lorem Ipsum in a new tab."> 
-                                <svg aria-hidden="true" class="bd-placeholder-img " height="300" preserveAspectRatio="xMidYMid slice" width="100%" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#777"></rect></svg> 
-                                <div class="col-lg-8 text-start"> 
-                                    <h3 class="fw-bold fs-3"><%= item.show_name %></h3>
-                                    <p><%= item.show_description %></p>
-                                    <small class="p-1 mb-2 text-dark" style="background-color: #fae590c7;">Performance Date: From <%= item.show_start %> to <%= item.show_end %></small> 
+            <div>
+                <h2 class="my-3 fs-4 fw-normal fst-italic text-body-secondary text-start">Please check out the debut performances coming to New York City in the next four weeks.</h2> 
+            </div>
+
+            <div class="album py-1"> 
+                <div class="container"> 
+                    <div class="row row-cols-1 row-cols-sm-1 row-cols-lg-2 row-cols-xl-3 g-3"> 
+                        <% showLists.forEach((item) =>{ %>
+                            <div class="col"> 
+                                <div class="card shadow-sm h-100"> 
+
+                                    <svg aria-label="Placeholder: Thumbnail" class="bd-placeholder-img card-img-top" height="225" preserveAspectRatio="xMidYMid slice" role="img" width="100%" xmlns="http://www.w3.org/2000/svg">
+                                        <title>Placeholder</title>
+                                        <rect width="100%" height="100%" fill="#55595c"></rect>
+                                        <text x="50%" y="50%" fill="#eceeef" text-anchor="middle" dominant-baseline="middle">Cover</text>
+                                    </svg>
+
+                                    <div class="card-body text-start d-flex flex-column"> 
+                                        <h3 class="fw-bold fs-4 text-capitalize"><%= item.show_name %></h3>
+                                        <div>
+                                            <p class="text-uppercase mb-2 d-flex align-items-center gap-1">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-geo-alt-fill" viewBox="0 0 16 16">
+                                                    <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10m0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6"/>
+                                                </svg>
+                                                <%= item.location %>
+                                            </p>
+                                        </div>
+                                        <p class="card-text mb-0"><%= item.show_description %></p>
+
+                                        <div class="mt-auto">
+                                            <hr>
+                                            <h4 class="fw-bold fs-6 mb-0">Performance</h4>
+                                            <div class="p-1 text-dark d-flex align-items-center gap-2">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar3" viewBox="0 0 16 16">
+                                                    <path d="M14 0H2a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2M1 3.857C1 3.384 1.448 3 2 3h12c.552 0 1 .384 1 .857v10.286c0 .473-.448.857-1 .857H2c-.552 0-1-.384-1-.857z"/>
+                                                    <path d="M6.5 7a1 1 0 1 0 0-2 1 1 0 0 0 0 2m3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2m3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2m-9 3a1 1 0 1 0 0-2 1 1 0 0 0 0 2m3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2m3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2m3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2m-9 3a1 1 0 1 0 0-2 1 1 0 0 0 0 2m3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2m3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2"/>
+                                                </svg>
+                                                <span><%= item.show_start %></span>
+                                                <span class="date-arrow">→</span>
+                                                <span><%= item.show_end || "TBA" %></span>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                 </div> 
-                            </a> 
-                        </li> 
-                    <% }); %>
-                </ul> 
+                            </div> 
+                        <% }); %>
+                    </div> 
+                </div> 
             </div>
-
+            
         </div>
     </div>
 

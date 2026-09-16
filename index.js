@@ -125,19 +125,17 @@ app.get("/home", requireAuth, async (req, res) => {
     return res.redirect("/login?error=DBconnection_failed");
   }
 
-  const capName =
-    pfData.user_name[0].toUpperCase() + pfData.user_name.slice(1).toLowerCase();
-
   const { data: showLst, error: showErr } = await serverSupabase
     .from("shows")
-    .select("*");
+    .select("*")
+    .order("show_start", { ascending: true });
 
   if (showErr) {
     console.log(showErr.message);
     return res.redirect("/login?error=DBconnection_failed");
   }
 
-  res.render("home.ejs", { profileName: capName, showLists: showLst });
+  res.render("home.ejs", { profileName: pfData.user_name, showLists: showLst });
 });
 
 app.get("/auth/google", async (req, res) => {

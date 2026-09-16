@@ -69,9 +69,14 @@ nav a:not(.active):hover {
   display: flex;
 }
 
-
+/* New on Stage Icon */
+.back-to-top-icon {
+    width: 22px;
+    height: 22px;
+    transform: scale(1.1);
+}
 /* Placeholder */
-.form-control::placeholder {
+/* .form-control::placeholder {
     color: #cccfd3;
     opacity: 1;
-}
+} */
