@@ -1,6 +1,8 @@
 # ShowList
 
-ShowList is a full-stack web application for discovering limited-run shows and performances. This project was created to gain hands-on experience building and deploying a complete web application, with particular focus on: **backend development, database integration, authentication and authorization, data processing and validation, API integration, and cloud deployment**.
+ShowList is a web application that helps users discover limited-run shows and performances. Users can browse a collection of current and upcoming shows, view show information, and access the application’s features after signing in.
+
+The application supports user registration and login through email/password or Google authentication. Authenticated users can access protected features, while the contact form allows users to submit inquiries.
 
 The application is built with **Node.js and Express.js**, uses **Supabase for authentication and database services**, and is deployed on **Render**.
 
@@ -20,9 +22,8 @@ Password: 123456
 ```
 ---
 
-## Project Overview
-
-ShowList provides authenticated users with access to a collection of current and upcoming limited-run shows. The application flow is shown as below:
+## Application Flow
+The following diagram illustrates the user flow and key features of the application.
 
 ```text
 User Request
@@ -57,7 +58,7 @@ Express.js Server
 ```
 ---
 
-## Key Technical Features
+## Key Features
 * **Backend Development:** Built server-side application logic and routing with Node.js and Express.js.
 * **Authentication & Authorization:** Implemented email/password authentication and Google OAuth using Supabase, with protected routes for authenticated users.
 * **Database Integration:** Connected the Express backend to a Supabase database for persistent application data.
