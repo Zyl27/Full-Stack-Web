@@ -1,6 +1,6 @@
 # ShowList
 
-ShowList is a full-stack web application for discovering limited-run shows and performances. This project is a hands-on learning and portfolio project to develop practical experience in **backend development, database integration, authentication, data processing, API integration, and cloud deployment**.
+ShowList is a full-stack web application for discovering limited-run shows and performances. This project was created to gain hands-on experience building and deploying a complete web application, with particular focus on: **backend development, database integration, authentication and authorization, data processing and validation, API integration, and cloud deployment**.
 
 The application is built with **Node.js and Express.js**, uses **Supabase for authentication and database services**, and is deployed on **Render**.
 
