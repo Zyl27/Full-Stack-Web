@@ -1,6 +1,6 @@
-# Show on Stage
+# New on Stage
 
-Show on Stage is a web application that helps users discover upcoming debut performances in New York City. Users can browse a collection of upcoming shows, view show information, and access the application’s features after signing in.
+New on Stage is a web application that helps users discover upcoming debut performances in New York City. Users can browse a collection of upcoming shows, view show information, and access the application’s features after signing in.
 
 The application supports user registration and login through email/password or Google authentication. Authenticated users can access protected features, while the contact form allows users to submit feedbacks.
 
@@ -8,7 +8,7 @@ The application is built with **Node.js and Express.js**, uses **Supabase for au
 
 > **Project purpose:** This is a portfolio project. It is not operated as a commercial service.
 
-**Live Demo:** [Show on Stage Web App](https://full-stack-web-av68.onrender.com)
+**Live Demo:** [New on Stage Web App](https://full-stack-web-av68.onrender.com)
 
 ---
 
