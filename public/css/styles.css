@@ -75,8 +75,9 @@ nav a:not(.active):hover {
     height: 22px;
     transform: scale(1.1);
 }
-/* Placeholder */
-/* .form-control::placeholder {
+
+/* Placeholder for test account*/
+.form-control::placeholder {
     color: #cccfd3;
     opacity: 1;
-} */
+}
